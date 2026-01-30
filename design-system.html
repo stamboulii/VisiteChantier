@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System - Suivi Chantiers</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem;
+        }
+        
+        .demo-section {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .demo-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-subtitle {
+            color: #7f8c8d;
+            margin-bottom: 3rem;
+            font-size: 1.2rem;
+        }
+        
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .color-card {
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .component-showcase {
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .icon-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .icon-item span {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Header -->
+        <div class="demo-section">
+            <h1 class="demo-title">🎨 Design System</h1>
+            <p class="demo-subtitle">Système de design moderne pour la plateforme Suivi de Chantiers</p>
+        </div>
+
+        <!-- Couleurs -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Palette de Couleurs</h2>
+            
+            <h3 style="color: #7f8c8d; margin-bottom: 1rem;">Gradients Principaux</h3>
+            <div class="color-grid">
+                <div class="color-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    Gradient 1<br>Purple
+                </div>
+                <div class="color-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    Gradient 2<br>Pink
+                </div>
+                <div class="color-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    Gradient 3<br>Blue
+                </div>
+                <div class="color-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    Gradient 4<br>Green
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Boutons & Actions</h2>
+            
+            <div class="button-grid">
+                <div>
+                    <button class="btn-primary">Bouton Principal</button>
+                    <p style="margin-top: 1rem; color: #7f8c8d;">Gradient avec hover effect</p>
+                </div>
+                <div>
+                    <button class="btn">Bouton Standard</button>
+                    <p style="margin-top: 1rem; color: #7f8c8d;">Style classique</p>
+                </div>
+                <div>
+                    <button class="logout-btn">Déconnexion</button>
+                    <p style="margin-top: 1rem; color: #7f8c8d;">Bouton destructif</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cartes Statistiques -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Cartes Statistiques</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card stat-card-1">
+                    <h3>42</h3>
+                    <p>Total Chantiers</p>
+                </div>
+                <div class="stat-card stat-card-2">
+                    <h3>28</h3>
+                    <p>En Cours</p>
+                </div>
+                <div class="stat-card stat-card-3">
+                    <h3>1,247</h3>
+                    <p>Photos</p>
+                </div>
+                <div class="stat-card stat-card-4">
+                    <h3>14</h3>
+                    <p>Terminés</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Badges de Statut -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Badges de Statut</h2>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <span class="chantier-status status-en_cours">En cours</span>
+                <span class="chantier-status status-termine">Terminé</span>
+                <span class="chantier-status status-en_pause">En pause</span>
+            </div>
+        </div>
+
+        <!-- Alertes -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Alertes & Notifications</h2>
+            
+            <div style="display: grid; gap: 1rem;">
+                <div class="alert alert-success">
+                    ✓ Opération réussie ! Votre chantier a été créé.
+                </div>
+                <div class="alert alert-error">
+                    ✗ Erreur ! Veuillez vérifier les informations saisies.
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte de Chantier -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Carte de Chantier</h2>
+            
+            <div class="chantiers-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                <div class="chantier-card">
+                    <h3>🏗️ Villa Moderne - Nice</h3>
+                    <p>📍 15 Promenade des Anglais, 06000 Nice</p>
+                    <p>📅 Début: 15/01/2024</p>
+                    <p>📸 127 photo(s)</p>
+                    <p style="font-size: 0.85rem;">Dernière photo: 28/01/2024 14:30</p>
+                    <span class="chantier-status status-en_cours">En cours</span>
+                </div>
+                
+                <div class="chantier-card">
+                    <h3>🏗️ Rénovation Haussmannien</h3>
+                    <p>📍 12 Rue de Rivoli, 75001 Paris</p>
+                    <p>📅 Début: 03/03/2024</p>
+                    <p>📸 85 photo(s)</p>
+                    <p style="font-size: 0.85rem;">Dernière photo: 27/01/2024 16:45</p>
+                    <span class="chantier-status status-en_cours">En cours</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaires -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Formulaires</h2>
+            
+            <div style="max-width: 600px;">
+                <div class="form-group">
+                    <label for="demo-input">Nom du chantier</label>
+                    <input type="text" id="demo-input" placeholder="Ex: Villa Moderne - Marseille">
+                </div>
+                
+                <div class="form-group">
+                    <label for="demo-select">Phase</label>
+                    <select id="demo-select">
+                        <option>Fondations</option>
+                        <option>Structure</option>
+                        <option>Clos & Couvert</option>
+                        <option>Second Œuvre</option>
+                        <option>Finitions</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="demo-textarea">Commentaire</label>
+                    <textarea id="demo-textarea" placeholder="Ajoutez un commentaire..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Icônes -->
+        <div class="demo-section">
+            <h2 style="color: #2c3e50; margin-bottom: 2rem;">Icônes & Emojis</h2>
+            
+            <div class="icon-grid">
+                <div class="icon-item">
+                    <span>🏗️</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Chantier</p>
+                </div>
+                <div class="icon-item">
+                    <span>📷</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Photo</p>
+                </div>
+                <div class="icon-item">
+                    <span>📍</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Adresse</p>
+                </div>
+                <div class="icon-item">
+                    <span>📅</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Date</p>
+                </div>
+                <div class="icon-item">
+                    <span>👤</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Utilisateur</p>
+                </div>
+                <div class="icon-item">
+                    <span>📊</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Stats</p>
+                </div>
+                <div class="icon-item">
+                    <span>✓</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Succès</p>
+                </div>
+                <div class="icon-item">
+                    <span>✗</span>
+                    <p style="font-size: 0.85rem; color: #7f8c8d;">Erreur</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="demo-section" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h2 style="color: white; margin-bottom: 1rem;">🎨 Design System Complete</h2>
+            <p>Interface moderne et responsive pour une expérience utilisateur premium</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{"timestamp":"2026-01-30 08:37:32","user_id":1,"username":"architect","action":"create_user","data":{"username":"archTest","role":"architect"},"ip":"::1"}
+{"timestamp":"2026-01-30 09:20:53","user_id":1,"username":"architect","action":"create_user","data":{"username":"test123","role":"architect"},"ip":"::1"}
+{"timestamp":"2026-01-30 09:31:17","user_id":1,"username":"architect","action":"assign_architect","data":{"chantier_id":1,"architect_id":2},"ip":"::1"}
+{"timestamp":"2026-01-30 09:52:25","user_id":1,"username":"architect","action":"assign_chantier_from_user","data":{"user_id":3,"chantier_id":1},"ip":"::1"}
+{"timestamp":"2026-01-30 10:09:44","user_id":1,"username":"architect","action":"unassign_architect","data":{"chantier_id":1,"architect_id":2},"ip":"::1"}
+{"timestamp":"2026-01-30 10:32:15","user_id":1,"username":"architect","action":"update_chantier","data":{"chantier_id":1,"nom":"Villa Moderne - Marseille","assigned_architects":["3"]},"ip":"::1"}
+{"timestamp":"2026-01-30 11:24:15","user_id":1,"username":"architect","action":"create_project","data":{"project_id":"4","nom":"test","type":"visite_commerciale","lot_id":"004"},"ip":"::1"}
+{"timestamp":"2026-01-30 11:24:22","user_id":1,"username":"architect","action":"unassign_architect","data":{"chantier_id":4,"architect_id":2},"ip":"::1"}
+{"timestamp":"2026-01-30 12:52:02","user_id":1,"username":"architect","action":"assign_architect","data":{"chantier_id":3,"architect_id":2},"ip":"::1"}
