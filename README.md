@@ -69,10 +69,10 @@ Ouvrez votre navigateur et accédez à:
 http://localhost/suivi-chantiers/
 ```
 
-## 🔐 Compte de test
+<!-- ## 🔐 Compte de test
 
 - **Username**: `architect`
-- **Password**: `architect123`
+- **Password**: `architect123` -->
 
 ## 📁 Structure du projet
 

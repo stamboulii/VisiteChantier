@@ -27,14 +27,28 @@ $stmt_assigned = $pdo->prepare("SELECT user_id FROM chantier_assignments WHERE c
 $stmt_assigned->execute([$chantier_id]);
 $assigned_ids = $stmt_assigned->fetchAll(PDO::FETCH_COLUMN);
 
-// Charger les lots depuis template.json pour les visites immobilières
-$template_path = '../template.json';
-$lots = [];
-if (file_exists($template_path)) {
-    $template_data = json_decode(file_get_contents($template_path), true);
-    if (isset($template_data['parcelData']['parcelList'])) {
-        $lots = array_keys($template_data['parcelData']['parcelList']);
-        sort($lots);
+// Lister les templates disponibles
+$templates_dir = '../templates/';
+$template_files = [];
+if (is_dir($templates_dir)) {
+    $files = scandir($templates_dir);
+    foreach ($files as $file) {
+        if (pathinfo($file, PATHINFO_EXTENSION) === 'json') {
+            $template_files[] = $file;
+        }
+    }
+}
+
+// Charger les lots du template actuel si présent
+$current_lots = [];
+if (!empty($chantier['template_file'])) {
+    $current_template_path = '../templates/' . basename($chantier['template_file']);
+    if (file_exists($current_template_path)) {
+        $template_data = json_decode(file_get_contents($current_template_path), true);
+        if (isset($template_data['parcelData']['parcelList'])) {
+            $current_lots = array_keys($template_data['parcelData']['parcelList']);
+            sort($current_lots);
+        }
     }
 }
 
@@ -48,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date_fin_prevue = $_POST['date_fin_prevue'] ?? null;
     $statut = $_POST['statut'] ?? 'en_cours';
     $type = $_POST['type'] ?? 'chantier';
+    $template_file = $_POST['template_file'] ?? $chantier['template_file'];
     $lot_id = ($type === 'visite_commerciale' || $type === 'etat_des_lieux') ? ($_POST['lot_id'] ?? null) : null;
     $new_assigned_architects = $_POST['architects'] ?? [];
     
@@ -60,11 +75,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Mise à jour du projet
             $stmt = $pdo->prepare("
                 UPDATE chantiers 
-                SET nom = ?, adresse = ?, description = ?, date_debut = ?, date_fin_prevue = ?, statut = ?, type = ?, lot_id = ?
+                SET nom = ?, adresse = ?, description = ?, date_debut = ?, date_fin_prevue = ?, statut = ?, type = ?, lot_id = ?, template_file = ?
                 WHERE id = ?
             ");
             
-            if ($stmt->execute([$nom, $adresse, $description, $date_debut, $date_fin_prevue ?: null, $statut, $type, $lot_id, $chantier_id])) {
+            if ($stmt->execute([$nom, $adresse, $description, $date_debut, $date_fin_prevue ?: null, $statut, $type, $lot_id, $template_file, $chantier_id])) {
                 
                 // Mettre à jour les assignations
                 // 1. Supprimer les anciennes assignations
@@ -150,13 +165,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
 
+                <div class="form-group" id="template_group" style="<?= ($chantier['type'] === 'visite_commerciale' || $chantier['type'] === 'etat_des_lieux') ? 'display: block;' : 'display: none;' ?>">
+                    <label for="template_file">Catalogue Immobilier (Template JSON)</label>
+                    <select id="template_file" name="template_file" onchange="loadLots(this.value)"
+                            style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        <option value="">-- Sélectionner un catalogue --</option>
+                        <?php foreach ($template_files as $file): ?>
+                            <option value="<?= htmlspecialchars($file) ?>" <?= $chantier['template_file'] === $file ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($file) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="form-group" id="lot_group" style="<?= ($chantier['type'] === 'visite_commerciale' || $chantier['type'] === 'etat_des_lieux') ? 'display: block;' : 'display: none;' ?>">
-                    <label for="lot_id">Lier à un lot (Template JSON)</label>
+                    <label for="lot_id">Lier à un lot</label>
                     <select id="lot_id" name="lot_id" 
                             style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px;">
                         <option value="">-- Sélectionner un lot --</option>
-                        <?php foreach ($lots as $lot): ?>
-                            <option value="<?= htmlspecialchars($lot) ?>" <?= $chantier['lot_id'] === $lot ? 'selected' : '' ?>>Lot <?= htmlspecialchars($lot) ?></option>
+                        <?php foreach ($current_lots as $lot): ?>
+                            <option value="<?= htmlspecialchars($lot) ?>" <?= $chantier['lot_id'] === $lot ? 'selected' : '' ?>>
+                                Lot <?= htmlspecialchars($lot) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -221,11 +251,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <script>
                 function toggleLotId(type) {
                     const lotGroup = document.getElementById('lot_group');
+                    const templateGroup = document.getElementById('template_group');
                     if (type === 'visite_commerciale' || type === 'etat_des_lieux') {
                         lotGroup.style.display = 'block';
+                        templateGroup.style.display = 'block';
                     } else {
                         lotGroup.style.display = 'none';
+                        templateGroup.style.display = 'none';
                     }
+                }
+
+                function loadLots(templateFile) {
+                    const lotSelect = document.getElementById('lot_id');
+                    const currentLot = "<?= $chantier['lot_id'] ?>";
+                    lotSelect.innerHTML = '<option value="">Chargement...</option>';
+                    
+                    if (!templateFile) {
+                        lotSelect.innerHTML = '<option value="">-- Sélectionner d'abord un catalogue --</option>';
+                        return;
+                    }
+
+                    fetch(`../includes/get_lots.php?file=${templateFile}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                alert(data.error);
+                                lotSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                            } else {
+                                lotSelect.innerHTML = '<option value="">-- Sélectionner un lot --</option>';
+                                data.lots.forEach(lot => {
+                                    const option = document.createElement('option');
+                                    option.value = lot;
+                                    option.textContent = `Lot ${lot}`;
+                                    if (lot === currentLot) option.selected = true;
+                                    lotSelect.appendChild(option);
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            lotSelect.innerHTML = '<option value="">Erreur réseau</option>';
+                        });
                 }
             </script>
         </div>

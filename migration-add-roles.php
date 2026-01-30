@@ -196,6 +196,16 @@ try {
     echo "<div class='success'>✅ Colonne 'phase' modifiée en VARCHAR dans la table 'images'</div>";
     echo "</div>";
     
+    // ÉTAPE 9: Support multi-templates
+    // ========================================
+    echo "<div class='step'><h3>📂 Étape 9: Support multi-templates</h3>";
+    $stmt = $pdo->query("SHOW COLUMNS FROM chantiers LIKE 'template_file'");
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE chantiers ADD COLUMN template_file VARCHAR(255) NULL AFTER lot_id");
+        echo "<div class='success'>✅ Colonne 'template_file' ajoutée à la table 'chantiers'</div>";
+    }
+    echo "</div>";
+    
     // Commit de la transaction
     $pdo->commit();
     

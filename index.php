@@ -66,10 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="submit" class="btn">Se connecter</button>
             </form>
             
-            <p style="text-align: center; margin-top: 1.5rem; color: #7f8c8d; font-size: 0.9rem;">
+            <!-- <p style="text-align: center; margin-top: 1.5rem; color: #7f8c8d; font-size: 0.9rem;">
                 Compte de test :<br>
                 <strong>architect</strong> / <strong>architect123</strong>
-            </p>
+            </p> -->
         </div>
     </div>
 </body>

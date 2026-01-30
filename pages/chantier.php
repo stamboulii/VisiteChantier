@@ -20,10 +20,12 @@ if (!$chantier) {
     exit;
 }
 
-// Récupérer les données du lot depuis template.json si applicable
+// Récupérer les données du lot depuis le template spécifique si applicable
 $lot_data = null;
 if (!empty($chantier['lot_id'])) {
-    $template_path = '../template.json';
+    $template_name = !empty($chantier['template_file']) ? $chantier['template_file'] : 'default_template.json';
+    $template_path = '../templates/' . basename($template_name);
+    
     if (file_exists($template_path)) {
         $template_json = json_decode(file_get_contents($template_path), true);
         if (isset($template_json['parcelData']['parcelList'][$chantier['lot_id']])) {
