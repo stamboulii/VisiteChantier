@@ -41,6 +41,23 @@ CREATE TABLE IF NOT EXISTS images (
     FOREIGN KEY (chantier_id) REFERENCES chantiers(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+
+CREATE TABLE IF NOT EXISTS `chantier_assignments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `chantier_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `assigned_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `assigned_by` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_assignment` (`chantier_id`,`user_id`),
+  KEY `assigned_by` (`assigned_by`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_chantier` (`chantier_id`),
+  CONSTRAINT `chantier_assignments_ibfk_1` FOREIGN KEY (`chantier_id`) REFERENCES `chantiers` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chantier_assignments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chantier_assignments_ibfk_3` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insertion d'un utilisateur de test (mot de passe: architect123)
 INSERT INTO users (username, email, password, nom, prenom) VALUES
 ('architect', 'architect@example.com', '$2y$10$7Zx3Y9YQZzN5H5qKZ8vQu.xE2F8RgKp7O1VQhKk5ZGz7fQ8pX5K8m', 'Dupont', 'Jean');
