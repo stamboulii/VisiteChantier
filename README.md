@@ -69,10 +69,33 @@ Ouvrez votre navigateur et accédez à:
 http://localhost/suivi-chantiers/
 ```
 
-<!-- ## 🔐 Compte de test
+# Installation de la base de données
 
-- **Username**: `architect`
-- **Password**: `architect123` -->
+## Prérequis
+- MySQL 8.0 ou supérieur
+- PHP 7.4 ou supérieur
+
+## Installation
+
+1. Importez le fichier SQL :
+```bash
+mysql -u root -p < database.sql
+```
+
+2. Ou via phpMyAdmin : Importez le fichier `database.sql`
+
+<!-- ## Compte de test
+
+**Username:** admin  
+**Email:** admin@example.com  
+**Mot de passe:** password123 -->
+
+## Structure
+
+- `users` : Gestion des utilisateurs (admin/architect)
+- `chantiers` : Gestion des chantiers
+- `images` : Photos des chantiers
+- `chantier_assignments` : Affectation des architectes aux chantiers
 
 ## 📁 Structure du projet
 
