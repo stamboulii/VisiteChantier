@@ -112,25 +112,39 @@ function canAccessChantier(int $chantier_id): bool {
 /**
  * Vérifie si l'utilisateur peut supprimer une image
  * Admin: peut supprimer toutes les images
- * Architect: peut supprimer seulement ses propres images uploadées
+ * Architect: peut supprimer toutes les images des chantiers auxquels il a accès
  */
 function canDeleteImage(int $image_id): bool {
     global $pdo;
-    
+
     if (isAdmin()) {
         return true; // Admin peut tout supprimer
     }
-    
+
     if (isArchitect()) {
-        // Vérifier si l'image appartient à cet architecte
-        $stmt = $pdo->prepare("SELECT user_id FROM images WHERE id = ?");
+        // Vérifier si l'image appartient à un chantier accessible par cet architecte
+        $stmt = $pdo->prepare("SELECT chantier_id FROM images WHERE id = ?");
         $stmt->execute([$image_id]);
         $image = $stmt->fetch();
-        
-        return $image && intval($image['user_id']) === getUserId();
+
+        if (!$image) {
+            return false;
+        }
+
+        return canAccessChantier($image['chantier_id']);
     }
-    
+
     return false;
+}
+
+/**
+ * Vérifie si l'utilisateur peut éditer une image
+ * Admin: peut éditer toutes les images
+ * Architect: peut éditer toutes les images des chantiers auxquels il a accès
+ */
+function canEditImage(int $image_id): bool {
+    // Même logique que canDeleteImage
+    return canDeleteImage($image_id);
 }
 
 /**

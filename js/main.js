@@ -219,7 +219,7 @@ style.textContent = `
             opacity: 1;
         }
     }
-    
+
     @keyframes slideOutRight {
         from {
             transform: translateX(0);
@@ -232,3 +232,134 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ===============================================
+// Fonctions pour la gestion des images
+// ===============================================
+
+// Ouvrir la modal d'édition d'une image
+function editImage(imageId, phase, commentaire, datePrise) {
+    const modal = document.getElementById('editImageModal');
+
+    // Remplir les champs du formulaire
+    document.getElementById('edit_image_id').value = imageId;
+    document.getElementById('edit_phase').value = phase;
+    document.getElementById('edit_commentaire').value = commentaire;
+    document.getElementById('edit_date_prise').value = datePrise;
+
+    // Afficher la modal
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// Fermer la modal d'édition
+function closeEditModal() {
+    const modal = document.getElementById('editImageModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Gérer la soumission du formulaire d'édition
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editImageForm');
+
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(editForm);
+
+            fetch('../api/edit-image.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closeEditModal();
+
+                    // Recharger la page pour afficher les modifications
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur lors de la mise à jour de l\'image', 'error');
+            });
+        });
+    }
+
+    // Fermer la modal avec Échap
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeEditModal();
+        }
+    });
+
+    // Fermer la modal en cliquant sur le fond
+    const editModal = document.getElementById('editImageModal');
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) {
+                closeEditModal();
+            }
+        });
+    }
+});
+
+// Supprimer une image
+function deleteImage(imageId) {
+    if (!confirmDelete('Êtes-vous sûr de vouloir supprimer cette image ? Cette action est irréversible.')) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('image_id', imageId);
+
+    fetch('../api/delete-image.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+
+            // Supprimer visuellement l'image avec animation
+            const galleryItem = document.querySelector(`.gallery-item[data-image-id="${imageId}"]`);
+            if (galleryItem) {
+                galleryItem.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                galleryItem.style.opacity = '0';
+                galleryItem.style.transform = 'scale(0.8)';
+
+                setTimeout(() => {
+                    galleryItem.remove();
+
+                    // Mettre à jour le compteur de photos
+                    const countElement = document.querySelector('.gallery-count');
+                    if (countElement) {
+                        const currentCount = parseInt(countElement.textContent);
+                        countElement.textContent = `${currentCount - 1} photo(s)`;
+                    }
+
+                    // Afficher le message vide si plus aucune photo
+                    const gallery = document.querySelector('.gallery');
+                    if (gallery && gallery.children.length === 0) {
+                        gallery.innerHTML = '<div class="empty-state"><p>Aucune photo pour ce projet. Uploadez votre première photo ci-dessus !</p></div>';
+                    }
+                }, 500);
+            }
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la suppression de l\'image', 'error');
+    });
+}

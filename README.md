@@ -4,6 +4,13 @@ Une application web simple pour architectes permettant de gérer et suivre l'ava
 
 ## 📋 Fonctionnalités
 
+### ✨ Version 2.0 (Nouveau !)
+- ✅ **Timeline chronologique** : Visualisation du déroulé du chantier par dates
+- ✅ **Édition d'images** : Modifier phase, date et commentaires des photos
+- ✅ **Suppression d'images** : Admins et architectes peuvent gérer les photos
+- ✅ **Date de prise de vue** : Champ éditable distinct de la date d'upload
+
+### 🏗️ Fonctionnalités de base
 - ✅ Système d'authentification sécurisé
 - ✅ Dashboard avec statistiques
 - ✅ Gestion multi-chantiers
@@ -38,7 +45,7 @@ Si vous utilisez XAMPP, WAMP ou MAMP:
 
 ### Étape 2: Créer la base de données
 
-1. Accédez à phpMyAdmin (http://localhost/phpmyadmin)
+1. Accédez à phpMyAdmin (<http://localhost/phpmyadmin>)
 2. Importez le fichier `database.sql` ou exécutez le script SQL fourni
 3. Vérifiez que les tables `users`, `chantiers` et `images` ont été créées
 
@@ -65,24 +72,27 @@ chmod 755 uploads/
 ### Étape 5: Accès à l'application
 
 Ouvrez votre navigateur et accédez à:
-```
+
+```text
 http://localhost/suivi-chantiers/
 ```
 
-# Installation de la base de données
+## Installation de la base de données
 
-## Prérequis
+### Prérequis
+
 - MySQL 8.0 ou supérieur
 - PHP 7.4 ou supérieur
 
-## Installation
+### Installation
 
 1. Importez le fichier SQL :
+
 ```bash
 mysql -u root -p < database.sql
 ```
 
-2. Ou via phpMyAdmin : Importez le fichier `database.sql`
+1. Ou via phpMyAdmin : Importez le fichier `database.sql`
 
 <!-- ## Compte de test
 
@@ -90,16 +100,16 @@ mysql -u root -p < database.sql
 **Email:** admin@example.com  
 **Mot de passe:** password123 -->
 
-## Structure
+### Structure
 
 - `users` : Gestion des utilisateurs (admin/architect)
 - `chantiers` : Gestion des chantiers
 - `images` : Photos des chantiers
 - `chantier_assignments` : Affectation des architectes aux chantiers
 
-## 📁 Structure du projet
+### 📁 Structure du projet
 
-```
+``` text
 suivi-chantiers/
 ├── css/
 │   └── style.css           # Styles CSS
@@ -119,30 +129,34 @@ suivi-chantiers/
 └── README.md
 ```
 
-## 🎨 Fonctionnalités détaillées
+### 🎨 Fonctionnalités détaillées
 
-### Dashboard
+#### Dashboard
+
 - Vue d'ensemble de tous les chantiers
 - Statistiques: total chantiers, chantiers en cours, photos uploadées
 - Accès rapide à chaque chantier
 
-### Gestion des chantiers
+#### Gestion des chantiers
+
 - Création de nouveaux chantiers avec informations détaillées
 - Suivi du statut (en cours, terminé, en pause)
 - Dates de début et de fin prévue
 
-### Upload de photos
+#### Upload de photos
+
 - Upload par chantier
 - Catégorisation par phase (fondations, structure, clos & couvert, etc.)
 - Ajout de commentaires
 - Métadonnées automatiques (date, heure)
 
-### Galerie
+#### Galerie
+
 - Affichage chronologique des photos
 - Vue détaillée en modal
 - Filtrage par phase de construction
 
-## 🔒 Sécurité
+### 🔒 Sécurité
 
 - Mots de passe hashés avec `password_hash()` (bcrypt)
 - Protection contre les injections SQL via requêtes préparées (PDO)
@@ -150,7 +164,7 @@ suivi-chantiers/
 - Sessions sécurisées
 - Protection XSS avec `htmlspecialchars()`
 
-## 🚀 Améliorations futures possibles
+<!-- ### 🚀 Améliorations futures possibles
 
 - [ ] Export des rapports en PDF
 - [ ] Partage de galerie avec clients (liens temporaires)
@@ -160,30 +174,32 @@ suivi-chantiers/
 - [ ] Gestion des équipes et permissions
 - [ ] Commentaires collaboratifs
 - [ ] Intégration calendrier
-- [ ] API REST
+- [ ] API REST -->
 
-## 📝 Notes de développement
+### 📝 Notes de développement
 
-### Base de données
+#### Base de données
 
 La base de données utilise InnoDB pour les contraintes d'intégrité référentielle:
+
 - Suppression en cascade des chantiers → suppression des images associées
 - Suppression d'un utilisateur → suppression de ses chantiers
 
-### Upload d'images
+#### Upload d'images
 
 - Taille maximale: 5MB
 - Formats acceptés: JPG, JPEG, PNG, GIF
 - Nommage unique avec timestamp pour éviter les collisions
 
-## 🤝 Support
+### 🤝 Support
 
 Pour toute question ou problème:
+
 1. Vérifiez que PHP et MySQL sont correctement installés
 2. Vérifiez les permissions du dossier `uploads/`
 3. Consultez les logs d'erreur PHP
 
-## 📄 Licence
+### 📄 Licence
 
 Projet libre d'utilisation pour usage personnel ou commercial.
 

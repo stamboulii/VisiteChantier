@@ -1,7 +1,37 @@
--- --------------------------------------------------------
+-- ========================================================
 -- Base de données pour le suivi de chantiers
--- Version: 1.0
--- --------------------------------------------------------
+-- Version: 2.0
+-- Date: 2026-02-02
+-- ========================================================
+--
+-- INSTRUCTIONS D'UTILISATION:
+--
+-- 1. NOUVELLE INSTALLATION (première fois):
+--    - Exécutez ce fichier complet dans phpMyAdmin ou MySQL CLI
+--    - Cela créera la base de données avec toutes les tables
+--    - Des données de test seront ajoutées automatiquement
+--
+-- 2. MISE À JOUR (base existante):
+--    - Exécutez ce fichier complet
+--    - Les tables existantes seront SUPPRIMÉES et recréées (⚠️ ATTENTION)
+--    - OU exécutez UNIQUEMENT la section MIGRATIONS (plus sûr)
+--
+-- 3. MIGRATION SÉCURISÉE (recommandé pour bases existantes):
+--    - Exécutez uniquement la section "MIGRATIONS" de ce fichier
+--    - Vos données existantes seront préservées
+--    - Les nouvelles colonnes/index seront ajoutés automatiquement
+--
+-- CHANGELOG:
+-- v2.0 (2026-02-02):
+--   - Ajout du champ 'date_prise' pour les images
+--   - Ajout de l'index sur 'date_prise' pour la timeline
+--   - Fonctionnalités d'édition/suppression d'images
+--   - Vue timeline chronologique
+--
+-- v1.0 (initiale):
+--   - Structure de base avec users, chantiers, images, assignments
+--
+-- ========================================================
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
@@ -73,10 +103,12 @@ CREATE TABLE `images` (
   `original_name` varchar(255) NOT NULL,
   `commentaire` text,
   `phase` varchar(50) DEFAULT 'autres',
+  `date_prise` date DEFAULT NULL,
   `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `chantier_id` (`chantier_id`),
   KEY `fk_images_user` (`user_id`),
+  KEY `idx_date_prise` (`date_prise`),
   CONSTRAINT `fk_images_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `images_ibfk_1` FOREIGN KEY (`chantier_id`) REFERENCES `chantiers` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -116,6 +148,67 @@ INSERT INTO `chantiers` (`user_id`, `nom`, `adresse`, `description`, `date_debut
 (1, 'Villa Moderne - Marseille', '25 Avenue du Prado, 13008 Marseille', 'Construction d\'une villa contemporaine de 250m²', '2024-01-15', '2024-12-31', 'en_cours', 'chantier'),
 (1, 'Rénovation Appartement Haussmannien', '12 Rue de Rivoli, 75001 Paris', 'Rénovation complète d\'un appartement de 120m²', '2024-03-01', '2024-09-30', 'en_cours', 'chantier'),
 (1, 'Extension Maison Individuelle', '8 Chemin des Vignes, 69006 Lyon', 'Extension et surélévation d\'une maison', '2023-11-20', '2024-06-30', 'termine', 'chantier');
+
+-- ========================================================
+-- SECTION MIGRATIONS - Pour les bases de données existantes
+-- ========================================================
+-- Cette section ajoute les nouvelles fonctionnalités sans supprimer les données existantes
+-- Elle peut être exécutée en toute sécurité sur une base existante ou nouvelle
+
+-- Migration 1: Ajout du champ date_prise pour les images (v2.0 - 2026-02-02)
+-- Cette migration ajoute le champ date_prise pour permettre la timeline chronologique
+
+-- Vérifier et ajouter la colonne date_prise si elle n'existe pas
+SET @dbname = 'suivi_chantiers';
+SET @tablename = 'images';
+SET @columnname = 'date_prise';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      TABLE_SCHEMA = @dbname
+      AND TABLE_NAME = @tablename
+      AND COLUMN_NAME = @columnname
+  ) > 0,
+  "SELECT 'Column date_prise already exists in images table.' AS Info;",
+  "ALTER TABLE `images` ADD COLUMN `date_prise` date DEFAULT NULL AFTER `phase`;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Vérifier et ajouter l'index sur date_prise s'il n'existe pas
+SET @indexname = 'idx_date_prise';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE
+      TABLE_SCHEMA = @dbname
+      AND TABLE_NAME = @tablename
+      AND INDEX_NAME = @indexname
+  ) > 0,
+  "SELECT 'Index idx_date_prise already exists.' AS Info;",
+  "ALTER TABLE `images` ADD KEY `idx_date_prise` (`date_prise`);"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Migrer les données existantes: définir date_prise = DATE(uploaded_at) pour les images sans date_prise
+UPDATE `images`
+SET `date_prise` = DATE(`uploaded_at`)
+WHERE `date_prise` IS NULL AND `uploaded_at` IS NOT NULL;
+
+-- Afficher le résultat de la migration
+SELECT
+    'Migration terminée avec succès!' AS Statut,
+    COUNT(*) AS Total_Images,
+    SUM(CASE WHEN date_prise IS NOT NULL THEN 1 ELSE 0 END) AS Images_Avec_Date
+FROM `images`;
+
+-- ========================================================
+-- FIN DES MIGRATIONS
+-- ========================================================
 
 -- --------------------------------------------------------
 -- Restauration des paramètres MySQL

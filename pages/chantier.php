@@ -63,23 +63,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
     } else {
     $commentaire = trim($_POST['commentaire'] ?? '');
     $phase = $_POST['phase'] ?? 'autres';
-    
+    $date_prise = !empty($_POST['date_prise']) ? $_POST['date_prise'] : date('Y-m-d');
+
     $file = $_FILES['image'];
-    
+
     if ($file['error'] === UPLOAD_ERR_OK) {
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        
+
         if (in_array($extension, ALLOWED_EXTENSIONS) && $file['size'] <= MAX_FILE_SIZE) {
             $filename = uniqid() . '_' . time() . '.' . $extension;
             $destination = UPLOAD_DIR . $filename;
-            
+
             if (move_uploaded_file($file['tmp_name'], $destination)) {
                 $stmt_insert = $pdo->prepare("
-                    INSERT INTO images (chantier_id, user_id, filename, original_name, commentaire, phase) 
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO images (chantier_id, user_id, filename, original_name, commentaire, phase, date_prise)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 ");
-                
-                if ($stmt_insert->execute([$chantier_id, $user_id, $filename, $file['name'], $commentaire, $phase])) {
+
+                if ($stmt_insert->execute([$chantier_id, $user_id, $filename, $file['name'], $commentaire, $phase, $date_prise])) {
                     $message = '<div class="alert alert-success">Photo uploadée avec succès !</div>';
                     // Recharger les images
                     $stmt_images->execute([$chantier_id]);
@@ -256,10 +257,17 @@ $statuts = [
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    
+
+                    <div class="form-group">
+                        <label for="date_prise">Date de prise de vue</label>
+                        <input type="date" id="date_prise" name="date_prise"
+                               value="<?= date('Y-m-d') ?>"
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    </div>
+
                     <div class="form-group">
                         <label for="commentaire">Commentaire (optionnel)</label>
-                        <textarea id="commentaire" name="commentaire" rows="3" 
+                        <textarea id="commentaire" name="commentaire" rows="3"
                                   style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit;"></textarea>
                     </div>
                     
@@ -270,7 +278,14 @@ $statuts = [
             <!-- Galerie -->
             <div class="gallery-header">
                 <h3>📷 Galerie Photos</h3>
-                <span class="gallery-count"><?= count($images) ?> photo(s)</span>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span class="gallery-count"><?= count($images) ?> photo(s)</span>
+                    <?php if (count($images) > 0): ?>
+                        <a href="timeline.php?id=<?= $chantier_id ?>" class="btn-primary" style="text-decoration: none; padding: 0.5rem 1.2rem; font-size: 0.9rem;">
+                            📅 Voir la Timeline
+                        </a>
+                    <?php endif; ?>
+                </div>
             </div>
             
             <?php if (empty($images)): ?>
@@ -280,15 +295,26 @@ $statuts = [
             <?php else: ?>
                 <div class="gallery">
                     <?php foreach ($images as $image): ?>
-                        <div class="gallery-item">
-                            <img src="../uploads/<?= htmlspecialchars($image['filename']) ?>" 
+                        <div class="gallery-item" data-image-id="<?= $image['id'] ?>">
+                            <img src="../uploads/<?= htmlspecialchars($image['filename']) ?>"
                                  alt="<?= htmlspecialchars($image['original_name']) ?>"
                                  onclick="openImageModal('../uploads/<?= htmlspecialchars($image['filename']) ?>')">
                             <div class="gallery-info">
                                 <span class="phase"><?= $phases[$image['phase']] ?? 'Autre' ?></span>
-                                <p class="date">📅 <?= date('d/m/Y à H:i', strtotime($image['uploaded_at'])) ?></p>
+                                <p class="date">📅 <?= $image['date_prise'] ? date('d/m/Y', strtotime($image['date_prise'])) : date('d/m/Y', strtotime($image['uploaded_at'])) ?></p>
                                 <?php if ($image['commentaire']): ?>
                                     <p class="comment"><?= htmlspecialchars($image['commentaire']) ?></p>
+                                <?php endif; ?>
+
+                                <?php if (canEditImage($image['id'])): ?>
+                                <div class="gallery-actions">
+                                    <button class="btn-edit-image" onclick="event.stopPropagation(); editImage(<?= $image['id'] ?>, '<?= addslashes($image['phase']) ?>', '<?= addslashes($image['commentaire'] ?? '') ?>', '<?= $image['date_prise'] ?? '' ?>')">
+                                        ✏️ Éditer
+                                    </button>
+                                    <button class="btn-delete-image" onclick="event.stopPropagation(); deleteImage(<?= $image['id'] ?>)">
+                                        🗑️ Supprimer
+                                    </button>
+                                </div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -304,6 +330,46 @@ $statuts = [
         <img id="modalImage" src="" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 90%; object-fit: contain;">
     </div>
 
+    <!-- Modal pour éditer une image -->
+    <div id="editImageModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>✏️ Éditer l'image</h3>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editImageForm" class="modal-form">
+                <input type="hidden" id="edit_image_id" name="image_id">
+
+                <div class="form-group">
+                    <label for="edit_phase"><?= $type === 'chantier' ? 'Phase du chantier' : 'Zone / Catégorie' ?></label>
+                    <select id="edit_phase" name="phase" required>
+                        <?php foreach ($phases as $key => $label): ?>
+                            <option value="<?= $key ?>"><?= $label ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_date_prise">Date de prise de vue</label>
+                    <input type="date" id="edit_date_prise" name="date_prise">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_commentaire">Commentaire</label>
+                    <textarea id="edit_commentaire" name="commentaire" rows="4"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Annuler</button>
+                    <button type="submit" class="btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chantierId = <?= $chantier_id ?>;
+    </script>
     <script src="../js/main.js"></script>
 </body>
 </html>
