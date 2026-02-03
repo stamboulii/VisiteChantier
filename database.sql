@@ -1,6 +1,6 @@
 -- ========================================================
 -- Base de données pour le suivi de chantiers
--- Version: 2.0
+-- Version: 2.1
 -- Date: 2026-02-02
 -- ========================================================
 --
@@ -22,6 +22,12 @@
 --    - Les nouvelles colonnes/index seront ajoutés automatiquement
 --
 -- CHANGELOG:
+-- v2.1 (2026-02-02):
+--   - Ajout du partage public des chantiers
+--   - Champs 'is_public' et 'share_token' pour la table chantiers
+--   - Page publique accessible via token unique
+--   - Toggle admin pour changer la visibilité
+--
 -- v2.0 (2026-02-02):
 --   - Ajout du champ 'date_prise' pour les images
 --   - Ajout de l'index sur 'date_prise' pour la timeline
@@ -86,9 +92,12 @@ CREATE TABLE `chantiers` (
   `type` enum('chantier','visite_commerciale','etat_des_lieux','autre') DEFAULT 'chantier',
   `lot_id` varchar(50) DEFAULT NULL,
   `template_file` varchar(255) DEFAULT NULL,
+  `is_public` tinyint(1) DEFAULT '0',
+  `share_token` varchar(64) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
+  KEY `idx_share_token` (`share_token`),
   CONSTRAINT `chantiers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -205,6 +214,68 @@ SELECT
     COUNT(*) AS Total_Images,
     SUM(CASE WHEN date_prise IS NOT NULL THEN 1 ELSE 0 END) AS Images_Avec_Date
 FROM `images`;
+
+-- Migration 2: Ajout des champs de partage public (v2.1 - 2026-02-02)
+-- Cette migration ajoute les champs is_public et share_token pour le partage public des chantiers
+
+-- Vérifier et ajouter la colonne is_public si elle n'existe pas
+SET @tablename = 'chantiers';
+SET @columnname = 'is_public';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      TABLE_SCHEMA = @dbname
+      AND TABLE_NAME = @tablename
+      AND COLUMN_NAME = @columnname
+  ) > 0,
+  "SELECT 'Column is_public already exists in chantiers table.' AS Info;",
+  "ALTER TABLE `chantiers` ADD COLUMN `is_public` tinyint(1) DEFAULT '0' AFTER `template_file`;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Vérifier et ajouter la colonne share_token si elle n'existe pas
+SET @columnname = 'share_token';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      TABLE_SCHEMA = @dbname
+      AND TABLE_NAME = @tablename
+      AND COLUMN_NAME = @columnname
+  ) > 0,
+  "SELECT 'Column share_token already exists in chantiers table.' AS Info;",
+  "ALTER TABLE `chantiers` ADD COLUMN `share_token` varchar(64) DEFAULT NULL AFTER `is_public`;"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Vérifier et ajouter l'index sur share_token s'il n'existe pas
+SET @indexname = 'idx_share_token';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE
+      TABLE_SCHEMA = @dbname
+      AND TABLE_NAME = @tablename
+      AND INDEX_NAME = @indexname
+  ) > 0,
+  "SELECT 'Index idx_share_token already exists.' AS Info;",
+  "ALTER TABLE `chantiers` ADD KEY `idx_share_token` (`share_token`);"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Afficher le résultat de la migration
+SELECT
+    'Migration partage public terminée avec succès!' AS Statut,
+    COUNT(*) AS Total_Chantiers,
+    SUM(CASE WHEN is_public = 1 THEN 1 ELSE 0 END) AS Chantiers_Publics
+FROM `chantiers`;
 
 -- ========================================================
 -- FIN DES MIGRATIONS

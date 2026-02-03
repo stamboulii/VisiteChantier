@@ -209,8 +209,19 @@ $statuts = [
                         <?= $statuts[$chantier['statut']] ?>
                     </span>
                     <?php if (isAdmin()): ?>
-                        <div style="margin-top: 1.5rem;">
+                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                             <a href="edit-chantier.php?id=<?= $chantier_id ?>" class="btn-primary" style="text-decoration: none; display: inline-block;">✏️ Modifier le projet</a>
+
+                            <?php if ($chantier['is_public'] && $chantier['share_token']): ?>
+                                <?php
+                                $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+                                $host = $_SERVER['HTTP_HOST'];
+                                $share_url = $protocol . '://' . $host . dirname(dirname($_SERVER['PHP_SELF'])) . '/share.php?token=' . $chantier['share_token'];
+                                ?>
+                                <button onclick="showShareModal()" class="btn-primary" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                    🌐 Partage Public
+                                </button>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -237,6 +248,18 @@ $statuts = [
                         </a>
                     </div>
                 <?php endif; ?>
+
+                <!-- Bouton Timeline pour tous les utilisateurs -->
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #dee2e6;">
+                    <a href="timeline.php?id=<?= $chantier_id ?>" class="btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        📅 Voir la Timeline
+                    </a>
+                    <?php if (count($images) > 0): ?>
+                        <span style="color: #6c757d; font-size: 0.85rem; margin-left: 1rem;">
+                            (<?= count($images) ?> photo<?= count($images) > 1 ? 's' : '' ?> disponible<?= count($images) > 1 ? 's' : '' ?>)
+                        </span>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <!-- Upload section -->
@@ -367,8 +390,105 @@ $statuts = [
         </div>
     </div>
 
+    <!-- Modal de partage public -->
+    <?php if (isAdmin() && $chantier['is_public'] && $chantier['share_token']): ?>
+        <?php
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'];
+        $share_url = $protocol . '://' . $host . dirname(dirname($_SERVER['PHP_SELF'])) . '/share.php?token=' . $chantier['share_token'];
+        ?>
+        <div id="shareModal" class="modal-overlay" style="display: none;" onclick="closeShareModal()">
+            <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3>🌐 Partage Public du Projet</h3>
+                    <button class="modal-close" onclick="closeShareModal()">&times;</button>
+                </div>
+
+                <div style="padding: 1.5rem;">
+                    <p style="color: #6c757d; margin-bottom: 1.5rem; line-height: 1.6;">
+                        Ce projet est actuellement <strong style="color: #28a745;">accessible publiquement</strong>.
+                        Toute personne disposant de ce lien pourra consulter la timeline du projet avec toutes les photos.
+                    </p>
+
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <label style="font-size: 0.9rem; color: #6c757d; display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                            📎 Lien de partage :
+                        </label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="shareUrlInput" value="<?= $share_url ?>" readonly
+                                   style="flex: 1; padding: 0.75rem; border: 2px solid #dee2e6; border-radius: 6px; font-size: 0.9rem; font-family: monospace; background: white;">
+                            <button onclick="copyShareUrlToClipboard()" class="btn-primary" style="padding: 0.75rem 1.5rem; white-space: nowrap;">
+                                📋 Copier
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="<?= $share_url ?>" target="_blank" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            👁️ Prévisualiser
+                        </a>
+                        <a href="timeline.php?id=<?= $chantier_id ?>" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            📅 Timeline
+                        </a>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #dee2e6;">
+                        <p style="font-size: 0.85rem; color: #6c757d; margin: 0;">
+                            💡 <strong>Astuce :</strong> Pour rendre ce projet privé, accédez à la page
+                            <a href="edit-chantier.php?id=<?= $chantier_id ?>" style="color: #667eea; text-decoration: underline;">Modifier le projet</a>
+                            et désactivez le partage public.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <script>
         const chantierId = <?= $chantier_id ?>;
+
+        // Fonctions pour le modal de partage
+        function showShareModal() {
+            document.getElementById('shareModal').style.display = 'flex';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        function copyShareUrlToClipboard() {
+            const shareUrlInput = document.getElementById('shareUrlInput');
+            shareUrlInput.select();
+            shareUrlInput.setSelectionRange(0, 99999); // Pour mobile
+
+            try {
+                document.execCommand('copy');
+
+                // Feedback visuel
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '✅ Copié !';
+                button.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 2000);
+            } catch (err) {
+                alert('❌ Erreur lors de la copie du lien');
+                console.error('Copy failed:', err);
+            }
+        }
+
+        // Fermer le modal avec la touche Échap
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const shareModal = document.getElementById('shareModal');
+                if (shareModal && shareModal.style.display === 'flex') {
+                    closeShareModal();
+                }
+            }
+        });
     </script>
     <script src="../js/main.js"></script>
 </body>

@@ -103,7 +103,7 @@ $is_logged_in = isset($_SESSION['user_id']);
                 <?php if ($is_logged_in): ?>
                     <a href="dashboard.php" class="btn-back">🏠 Retour au Dashboard</a>
                 <?php else: ?>
-                    <a href="../index.php" class="btn-login">🔑 Se connecter</a>
+                    <a href="../login.php" class="btn-login">🔑 Se connecter</a>
                 <?php endif; ?>
             </div>
         </div>

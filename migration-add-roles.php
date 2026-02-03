@@ -219,7 +219,7 @@ try {
     echo "</ul>";
     echo "</div>";
     
-    echo "<a href='index.php' class='btn'>🏠 Retour à la connexion</a>";
+    echo "<a href='login.php' class='btn'>🏠 Retour à la connexion</a>";
     echo "<a href='test-db.php' class='btn' style='background: #27ae60; margin-left: 10px;'>🔍 Tester la connexion</a>";
     
 } catch (PDOException $e) {

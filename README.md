@@ -4,7 +4,15 @@ Une application web simple pour architectes permettant de gérer et suivre l'ava
 
 ## 📋 Fonctionnalités
 
-### ✨ Version 2.0 (Nouveau !)
+### ✨ Version 2.1 (Nouveau !)
+- ✅ **Page d'accueil publique** : Galerie de tous les chantiers publics accessible sans connexion
+- ✅ **Partage public** : Les admins peuvent rendre un chantier accessible publiquement
+- ✅ **Token unique** : Chaque partage génère un lien sécurisé unique
+- ✅ **Timeline publique** : Vue timeline accessible sans authentification
+- ✅ **Gestion simplifiée** : Toggle on/off dans l'interface admin
+- ✅ **Navigation intuitive** : Navigation entre projets publics et détails
+
+### ✨ Version 2.0
 - ✅ **Timeline chronologique** : Visualisation du déroulé du chantier par dates
 - ✅ **Édition d'images** : Modifier phase, date et commentaires des photos
 - ✅ **Suppression d'images** : Admins et architectes peuvent gérer les photos

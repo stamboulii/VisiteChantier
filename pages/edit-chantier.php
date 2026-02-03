@@ -241,12 +241,121 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </p>
                 </div>
 
+                <!-- Section de partage public -->
+                <div class="form-group" style="border-top: 2px solid #e0e0e0; padding-top: 2rem; margin-top: 2rem;">
+                    <label style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: block;">
+                        🌐 Partage Public
+                    </label>
+
+                    <div style="background: <?= $chantier['is_public'] ? '#d4edda' : '#f8f9fa' ?>; padding: 1.5rem; border-radius: 12px; border: 2px solid <?= $chantier['is_public'] ? '#28a745' : '#e0e0e0' ?>;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                            <div>
+                                <strong style="display: block; font-size: 1rem; margin-bottom: 0.5rem;">
+                                    État actuel: <span id="public-status-text"><?= $chantier['is_public'] ? '🟢 Public' : '🔴 Privé' ?></span>
+                                </strong>
+                                <p style="font-size: 0.85rem; color: #6c757d; margin: 0;">
+                                    <?= $chantier['is_public'] ? 'Ce chantier est accessible publiquement via un lien de partage' : 'Ce chantier n\'est visible que par les utilisateurs assignés' ?>
+                                </p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="public-toggle" <?= $chantier['is_public'] ? 'checked' : '' ?> onchange="togglePublicStatus()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <?php if ($chantier['is_public'] && $chantier['share_token']): ?>
+                            <?php
+                            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+                            $host = $_SERVER['HTTP_HOST'];
+                            $share_url = $protocol . '://' . $host . dirname(dirname($_SERVER['PHP_SELF'])) . '/share.php?token=' . $chantier['share_token'];
+                            ?>
+                            <div id="share-url-container" style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #28a745;">
+                                <label style="font-size: 0.85rem; color: #6c757d; display: block; margin-bottom: 0.5rem;">
+                                    Lien de partage public:
+                                </label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="share-url" value="<?= $share_url ?>" readonly
+                                           style="flex: 1; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.9rem;">
+                                    <button type="button" onclick="copyShareUrl()" class="btn-primary" style="width: auto; padding: 0.5rem 1rem;">
+                                        📋 Copier
+                                    </button>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div id="share-url-container" style="display: none; background: white; padding: 1rem; border-radius: 8px; border: 1px solid #28a745; margin-top: 1rem;">
+                                <label style="font-size: 0.85rem; color: #6c757d; display: block; margin-bottom: 0.5rem;">
+                                    Lien de partage public:
+                                </label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="share-url" value="" readonly
+                                           style="flex: 1; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.9rem;">
+                                    <button type="button" onclick="copyShareUrl()" class="btn-primary" style="width: auto; padding: 0.5rem 1rem;">
+                                        📋 Copier
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
                 <div style="margin-top: 2rem;">
                     <button type="submit" class="btn-primary" style="width: 100%;">Enregistrer les modifications</button>
-                    <a href="chantier.php?id=<?= $chantier_id ?>" class="btn-primary" 
+                    <a href="chantier.php?id=<?= $chantier_id ?>" class="btn-primary"
                        style="background: #95a5a6; text-align: center; width: 100%; display: block; margin-top: 1rem; text-decoration: none;">Annuler</a>
                 </div>
             </form>
+
+            <style>
+                /* Toggle Switch Styles */
+                .toggle-switch {
+                    position: relative;
+                    display: inline-block;
+                    width: 60px;
+                    height: 34px;
+                }
+
+                .toggle-switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+
+                .toggle-slider {
+                    position: absolute;
+                    cursor: pointer;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: #ccc;
+                    transition: 0.4s;
+                    border-radius: 34px;
+                }
+
+                .toggle-slider:before {
+                    position: absolute;
+                    content: "";
+                    height: 26px;
+                    width: 26px;
+                    left: 4px;
+                    bottom: 4px;
+                    background-color: white;
+                    transition: 0.4s;
+                    border-radius: 50%;
+                }
+
+                input:checked + .toggle-slider {
+                    background-color: #28a745;
+                }
+
+                input:checked + .toggle-slider:before {
+                    transform: translateX(26px);
+                }
+
+                .toggle-slider:hover {
+                    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+                }
+            </style>
 
             <script>
                 function toggleLotId(type) {
@@ -265,9 +374,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     const lotSelect = document.getElementById('lot_id');
                     const currentLot = "<?= $chantier['lot_id'] ?>";
                     lotSelect.innerHTML = '<option value="">Chargement...</option>';
-                    
+
                     if (!templateFile) {
-                        lotSelect.innerHTML = '<option value="">-- Sélectionner d'abord un catalogue --</option>';
+                        lotSelect.innerHTML = '<option value="">-- Sélectionner d\'abord un catalogue --</option>';
                         return;
                     }
 
@@ -292,6 +401,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             console.error(err);
                             lotSelect.innerHTML = '<option value="">Erreur réseau</option>';
                         });
+                }
+
+                // Fonctions de gestion du partage public
+                function togglePublicStatus() {
+                    const chantierId = <?= $chantier_id ?>;
+                    const formData = new FormData();
+                    formData.append('chantier_id', chantierId);
+
+                    fetch('../api/toggle-public.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Mettre à jour l'interface
+                            const statusText = document.getElementById('public-status-text');
+                            const shareUrlContainer = document.getElementById('share-url-container');
+                            const shareUrlInput = document.getElementById('share-url');
+                            const parentContainer = shareUrlContainer.parentElement;
+
+                            if (data.is_public) {
+                                statusText.textContent = '🟢 Public';
+                                statusText.parentElement.nextElementSibling.textContent =
+                                    'Ce chantier est accessible publiquement via un lien de partage';
+                                parentContainer.style.background = '#d4edda';
+                                parentContainer.style.borderColor = '#28a745';
+
+                                // Afficher et mettre à jour le lien de partage
+                                shareUrlInput.value = data.share_url;
+                                shareUrlContainer.style.display = 'block';
+
+                                // Notification de succès
+                                alert('✅ ' + data.message + '\n\nLien de partage généré avec succès !');
+                            } else {
+                                statusText.textContent = '🔴 Privé';
+                                statusText.parentElement.nextElementSibling.textContent =
+                                    'Ce chantier n\'est visible que par les utilisateurs assignés';
+                                parentContainer.style.background = '#f8f9fa';
+                                parentContainer.style.borderColor = '#e0e0e0';
+
+                                // Masquer le lien de partage
+                                shareUrlContainer.style.display = 'none';
+
+                                alert('✅ ' + data.message);
+                            }
+                        } else {
+                            alert('❌ Erreur: ' + data.message);
+                            // Réinitialiser le toggle en cas d'erreur
+                            document.getElementById('public-toggle').checked = !document.getElementById('public-toggle').checked;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('❌ Erreur lors de la modification du statut public');
+                        // Réinitialiser le toggle en cas d'erreur
+                        document.getElementById('public-toggle').checked = !document.getElementById('public-toggle').checked;
+                    });
+                }
+
+                function copyShareUrl() {
+                    const shareUrlInput = document.getElementById('share-url');
+                    shareUrlInput.select();
+                    shareUrlInput.setSelectionRange(0, 99999); // Pour mobile
+
+                    try {
+                        document.execCommand('copy');
+                        alert('✅ Lien copié dans le presse-papier !');
+                    } catch (err) {
+                        alert('❌ Erreur lors de la copie du lien');
+                    }
                 }
             </script>
         </div>
